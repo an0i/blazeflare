@@ -1,0 +1,34 @@
+{
+  "name": "blazeflare",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "fun": "wrangler pages dev --kv=BLAZEFLARE_KV --proxy 5173"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231218.0",
+    "@sveltejs/vite-plugin-svelte": "^3.0.1",
+    "@types/cookie": "^0.6.0",
+    "@types/js-cookie": "^3.0.6",
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.32",
+    "prettier": "^3.1.1",
+    "prettier-plugin-svelte": "^3.1.2",
+    "prettier-plugin-tailwindcss": "^0.5.10",
+    "svelte": "^4.2.8",
+    "tailwindcss": "^3.4.0",
+    "typescript": "^5.3.3",
+    "vite": "^5.0.10",
+    "wrangler": "^3.22.2"
+  },
+  "dependencies": {
+    "cookie": "^0.6.0",
+    "jose": "^5.2.0",
+    "js-cookie": "^3.0.5",
+    "zod": "^3.22.4"
+  }
+}
