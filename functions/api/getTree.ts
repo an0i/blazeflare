@@ -14,7 +14,7 @@ export const onRequestGet: PagesFunction<{ BLAZEFLARE_KV: KVNamespace }> = async
     const cookie = parse(context.request.headers.get("Cookie")||"")
     if (cookie.id_token!==undefined) {
       const {payload} = await verifyJwt(cookie.id_token);
-      tree.nodes.push(fullTree.nodes.find(node=>node.name===payload.sub))
+      tree.nodes.push(fullTree.nodes.find(node=>node.name===payload.nickname))
     }
 
     return convertObjectToResponse(tree)

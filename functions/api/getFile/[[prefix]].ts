@@ -13,7 +13,7 @@ export const onRequestGet: PagesFunction<{ BLAZEFLARE_KV: KVNamespace }> = async
     if (cookie.id_token !== undefined) {
       try {
         const { payload } = await verifyJwt(cookie.id_token);
-        if (segments[0] === payload.sub) {
+        if (segments[0] === payload.nickname) {
           return fetchFile(context.env.BLAZEFLARE_KV, segments);
         }
       } catch (error) {
