@@ -10,7 +10,7 @@ if (id_token === null) {
   const jwt = jose.decodeJwt(id_token);
   if (window.localStorage.getItem("nonce") !== jwt.nonce) alert("重放攻击?");
   Cookies.set("id_token", id_token, { expires: 36000000 / 86400000 });
-  window.localStorage.setItem("user_info", JSON.stringify(jwt))
+  window.localStorage.setItem("user_info", JSON.stringify(jwt));
   location.href = import.meta.env.BASE_URL;
 }
 

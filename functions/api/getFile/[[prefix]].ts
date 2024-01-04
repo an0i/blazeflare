@@ -8,7 +8,7 @@ export const onRequestGet: PagesFunction<{ BLAZEFLARE_KV: KVNamespace }> = async
   if (segments[0] === "everyone") {
     return fetchFile(context.env.BLAZEFLARE_KV, segments);
   } else {
-    const cookie = parse(context.request.headers.get("Cookie")||"");
+    const cookie = parse(context.request.headers.get("Cookie") || "");
 
     if (cookie.id_token !== undefined) {
       try {

@@ -17,8 +17,8 @@
 <div id="app-root" class="flex h-full flex-col">
   <div class="box-border flex overflow-x-auto border-b">
     <h1 id="title" class="p-1.5">
-      <a href="{import.meta.env.BASE_URL}" class="block size-11 rounded-full fill-red-600 font-semibold hover:bg-gray-100 active:hover:bg-gray-200"><SvgFire class="size-full" /></a>
-      <a href="{import.meta.env.BASE_URL}" class="ifnocss">BlazeFlare</a>
+      <a href={import.meta.env.BASE_URL} class="block size-11 rounded-full fill-red-600 font-semibold hover:bg-gray-100 active:hover:bg-gray-200"><SvgFire class="size-full" /></a>
+      <a href={import.meta.env.BASE_URL} class="ifnocss">BlazeFlare</a>
     </h1>
 
     <ul id="navigator" class="ml-auto box-border flex gap-1.5 border-l p-1.5">

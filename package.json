@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "fun": "wrangler pages dev --kv=BLAZEFLARE_KV --proxy 5173"
+    "fun": "wrangler pages dev --kv=BLAZEFLARE_KV --proxy 5173",
+    "format": "prettier -w './**/*.{ts,js,html,json,css,svelte}'"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20231218.0",

@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import { resolve } from "path";
 import { defineConfig } from "vite";
 import { svelte } from "@sveltejs/vite-plugin-svelte";
 
@@ -8,10 +8,10 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        main: resolve(__dirname, 'index.html'),
-        login: resolve(__dirname, 'user/login.html'),
-        logout: resolve(__dirname, 'user/logout.html'),
-      }
-    }
-  }
+        main: resolve(__dirname, "index.html"),
+        login: resolve(__dirname, "user/login.html"),
+        logout: resolve(__dirname, "user/logout.html"),
+      },
+    },
+  },
 });
