@@ -5,6 +5,7 @@
   const routeNow = new HashRoute(decodeURIComponent(location.hash));
 
   const logined = document.cookie.includes("id_token");
+  const nickname = logined ? JSON.parse(localStorage.getItem("user_info")).nickname : "everyone";
 </script>
 
 <svelte:window
@@ -72,7 +73,7 @@
             {/if}
           {/each}
         </ul>
-        {#await fetch("/api/getTree").then((res) => res.json())}
+        {#await fetch(`/api/getTree/${nickname}`).then((res) => res.json())}
           <div id="list-loading" class="grow">
             <p class="p-2">正在加载文件树...</p>
           </div>
