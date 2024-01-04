@@ -4,7 +4,9 @@
     "module": "esnext",
     "lib": ["esnext"],
     "types": ["@cloudflare/workers-types"],
-    "moduleResolution": "bundler"
+    "moduleResolution": "bundler",
+    "noImplicitAny": true,
+    "strictNullChecks": true
   },
-  "include": ["functions/**/*"]
+  "include": ["./**/*.ts"]
 }

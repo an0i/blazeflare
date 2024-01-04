@@ -25,3 +25,4 @@ dist-ssr
 
 test/
 .wrangler/
+.dev.vars

@@ -1,24 +1,25 @@
-import { TreeNode, convertObjectToResponse, verifyJwt } from "../utils";
-import { parse } from "cookie";
+import { TreeNode, Utils } from "../utils";
+import { parse as parseCookie } from "cookie";
 
-export const onRequestGet: PagesFunction<{ BLAZEFLARE_KV: KVNamespace }> = async (context) => {
-  const fullTree: TreeNode = JSON.parse(await context.env.BLAZEFLARE_KV.get("tree"));
+export const onRequestGet: PagesFunction = async (context) => {
+  const fullTree = await Utils.getTreeFromKv(Utils.getKv(context));
+  const resultTree: TreeNode = {
+    name: "root",
+    isFolder: true,
+    nodes: [],
+  };
 
-  if (fullTree.isFolder === true) {
-    const tree: TreeNode = {
-      name: "root",
-      isFolder: true,
-      nodes: [fullTree.nodes.find((node) => node.name === "everyone")],
-    };
+  // 添加 everyoneFolder
+  const everyoneFolder = fullTree.nodes.find((node) => node.name === "everyone");
+  everyoneFolder !== undefined && resultTree.nodes.push(everyoneFolder);
 
-    const cookie = parse(context.request.headers.get("Cookie") || "");
-    if (cookie.id_token !== undefined) {
-      const { payload } = await verifyJwt(cookie.id_token);
-      tree.nodes.push(fullTree.nodes.find((node) => node.name === payload.nickname));
-    }
-
-    return convertObjectToResponse(tree);
+  // 鉴权添加 userFolder
+  const cookie = parseCookie(context.request.headers.get("Cookie") || "");
+  if (cookie.id_token !== undefined) {
+    const { payload } = await Utils.verifyJwt(cookie.id_token);
+    const userFolder = fullTree.nodes.find((node) => node.name === payload.nickname);
+    userFolder !== undefined && resultTree.nodes.push(userFolder);
   }
 
-  return new Response("未建立文件树");
+  return Utils.jsonToResponse(resultTree);
 };

@@ -1,7 +1,31 @@
 import { z } from "zod";
-import { convertObjectToResponse, getB2AuthorizeAccount } from "../utils";
+import { TreeNode, Utils } from "../utils";
 
-const b2ListFileNamesNoFolderFileSchema = z.object({
+export const onRequestGet: PagesFunction = async (context) => {
+  const kv = Utils.getKv(context);
+
+  const {
+    authorizationToken,
+    allowed: { bucketId },
+    apiUrl,
+  } = await Utils.get_b2_authorize_account(context);
+
+  const allFiles = await getAllFiles_b2_list_file_names(bucketId, apiUrl, authorizationToken);
+  const tree = filesToTree(allFiles);
+  sortTreeNode(tree);
+  await kv.put("tree", JSON.stringify(tree));
+
+  return Utils.jsonToResponse({
+    success: true,
+    message: "成功更新文件索引",
+    payload: {
+      count: allFiles.length,
+    },
+  });
+};
+
+// 不指定 delimiter, B2 的 API 不会返回文件夹
+const b2_list_file_names_FileSchema_NoFolder = z.object({
   accountId: z.string(),
   action: z.union([z.literal("start"), z.literal("upload"), z.literal("hide")]),
   bucketId: z.string(),
@@ -13,29 +37,29 @@ const b2ListFileNamesNoFolderFileSchema = z.object({
   fileName: z.string(),
   uploadTimestamp: z.number(),
 });
-
-const b2ListFileNamesNoFolderSchema = z.object({
-  files: b2ListFileNamesNoFolderFileSchema.array(),
+const b2_list_file_names_Schema_NoFolder = z.object({
+  files: b2_list_file_names_FileSchema_NoFolder.array(),
   nextFileName: z.string().nullish(),
 });
+type b2_list_file_names_File = z.infer<typeof b2_list_file_names_FileSchema_NoFolder>;
 
-async function getAllFileNames(bucketId, apiUrl, authorizationToken) {
+async function getAllFiles_b2_list_file_names(bucketId: string, apiUrl: string, authorizationToken: string) {
   let allFiles = [];
-  let nextFileName: string | null | undefined = "";
-  while (typeof nextFileName === "string") {
+  let nfn: string | null | undefined = "";
+  while (typeof nfn === "string") {
     const search =
-      nextFileName === ""
+      nfn === ""
         ? new URLSearchParams({
-            bucketId: bucketId,
+            bucketId,
             maxFileCount: "1000",
           })
         : new URLSearchParams({
-            bucketId: bucketId,
+            bucketId,
             maxFileCount: "1000",
-            startFileName: nextFileName,
+            startFileName: nfn,
           });
 
-    const temp = b2ListFileNamesNoFolderSchema.parse(
+    const data = b2_list_file_names_Schema_NoFolder.parse(
       await (
         await fetch(`${apiUrl}/b2api/v2/b2_list_file_names?${search}`, {
           headers: {
@@ -44,40 +68,31 @@ async function getAllFileNames(bucketId, apiUrl, authorizationToken) {
         })
       ).json(),
     );
-    nextFileName = temp.nextFileName;
-    allFiles.push(...temp.files);
+    nfn = data.nextFileName;
+    allFiles.push(...data.files);
   }
   return allFiles;
 }
 
-function filesToTree(allFiles) {
-  type Node =
-    | {
-        isFolder: true;
-        name: string;
-        nodes: Node[];
-      }
-    | { isFolder: false; name: string; id: string; birth: number; size: number; mime: string; sha1?: string | null; md5?: string | null };
-  const fileTree: Node = {
+function filesToTree(files: b2_list_file_names_File[]) {
+  const tree: TreeNode = {
     isFolder: true,
     name: "root",
     nodes: [],
   };
-  allFiles.forEach((file) => {
-    let current: Node = fileTree;
+  files.forEach((file) => {
+    let current = tree;
     const segments = file.fileName.split("/");
     segments.slice(0, -1).forEach((segment) => {
-      if (current.isFolder) {
-        current =
-          current.nodes.find((node) => node.isFolder && node.name === segment) ||
-          current.nodes[
-            current.nodes.push({
-              isFolder: true,
-              name: segment,
-              nodes: [],
-            }) - 1
-          ];
-      }
+      current =
+        (current.nodes.find((node) => node.isFolder && node.name === segment) as Extract<TreeNode, { isFolder: true }>) ||
+        (current.nodes[
+          current.nodes.push({
+            isFolder: true,
+            name: segment,
+            nodes: [],
+          }) - 1
+        ] as Extract<TreeNode, { isFolder: true }>);
     });
     current.nodes.push({
       isFolder: false,
@@ -90,47 +105,19 @@ function filesToTree(allFiles) {
       md5: file.contentMd5,
     });
   });
-
-  // sort fileTree
-  {
-    function sortNode(node: Node) {
-      if (node.isFolder) {
-        node.nodes.sort((a, b) => {
-          if (a.isFolder && !b.isFolder) return -1;
-          if (!a.isFolder && b.isFolder) return 1;
-          return a.name.localeCompare(b.name, "zh");
-        });
-        node.nodes.forEach(sortNode);
-      }
-    }
-    sortNode(fileTree);
-  }
-  return fileTree;
+  return tree;
 }
 
-export const onRequestGet: PagesFunction<{ BLAZEFLARE_KV: KVNamespace }> = async (context) => {
-  const { id, key } = z
-    .object({
-      id: z.string().min(1),
-      key: z.string().min(1),
-    })
-    .parse(JSON.parse(await context.env.BLAZEFLARE_KV.get("config")));
-  const {
-    authorizationToken,
-    allowed: { bucketId },
-    apiUrl,
-  } = await getB2AuthorizeAccount(id, key);
-
-  const allFiles = await getAllFileNames(bucketId, apiUrl, authorizationToken);
-  const tree = filesToTree(allFiles);
-
-  await context.env.BLAZEFLARE_KV.put("tree", JSON.stringify(tree));
-
-  return convertObjectToResponse({
-    success: true,
-    message: "成功更新文件索引",
-    payload: {
-      count: allFiles.length,
-    },
-  });
-};
+function sortTreeNode(node: TreeNode) {
+  function sort(node: TreeNode) {
+    if (node.isFolder) {
+      node.nodes.sort((a, b) => {
+        if (a.isFolder && !b.isFolder) return -1;
+        if (!a.isFolder && b.isFolder) return 1;
+        return a.name.localeCompare(b.name, "zh");
+      });
+      node.nodes.forEach(sort);
+    }
+  }
+  sort(node);
+}
