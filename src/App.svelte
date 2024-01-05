@@ -7,8 +7,8 @@
   if (window.location.hash === "") window.location.hash = defaultHash;
   const currentHash = new Hash(decodeURIComponent(location.hash));
 
-  const userInfo = JSON.parse(window.localStorage.getItem("user_info")) || { nickname: "everyone", picture: avatar };
-  const isLogined = document.cookie.includes("id_token") && !(userInfo === null);
+  const userInfo = document.cookie.includes("id_token") ? JSON.parse(window.localStorage.getItem("user_info")) : { nickname: "everyone", picture: avatar };
+  const isLogined = document.cookie.includes("id_token") && (userInfo?.nickname || "everyone") !== "everyone";
 
   let showBzEmpty = localStorage.getItem("hide_bzempty") === "yes" || false;
   $: {
@@ -78,7 +78,7 @@
             {/if}
           {/each}
         </ul>
-        {#await fetch(`/api/getTree/${userInfo.nickname}`).then((res) => res.json())}
+        {#await fetch(`/api/getTree/${isLogined ? userInfo.nickname : "everyone"}`).then((res) => res.json())}
           <div id="list-loading" class="grow">
             <p class="p-2">正在加载文件树...</p>
           </div>
@@ -154,7 +154,7 @@
         </div>
 
         <div class="flex h-14 items-center truncate border-b">
-          <img src={userInfo.picture} alt="user avatar" class="ml-2 box-border inline-block h-12 rounded-full border" />
+          <img src={isLogined ? userInfo.picture : avatar} alt="user avatar" class="ml-2 box-border inline-block h-12 rounded-full border" />
           <span class="ml-2 inline-block text-lg">{isLogined ? userInfo.nickname : "请登入"}</span>
           {#if isLogined}
             <a href="{import.meta.env.BASE_URL}user/logout.html" class="ml-auto box-border block h-full border-l fill-gray-300 p-3 hover:bg-gray-100 active:hover:bg-gray-200"><SvgLogout class="size-full" /></a>
