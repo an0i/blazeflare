@@ -157,10 +157,10 @@
           <img src={isLogined ? userInfo.picture : avatar} alt="user avatar" class="ml-2 box-border inline-block h-12 rounded-full border" />
           <span class="ml-2 inline-block text-lg">{isLogined ? userInfo.nickname : "请登入"}</span>
           {#if isLogined}
-            <a href="{import.meta.env.BASE_URL}user/logout.html" class="ml-auto box-border block h-full border-l fill-gray-300 p-3 hover:bg-gray-100 active:hover:bg-gray-200"><SvgLogout class="size-full" /></a>
+            <a href="{import.meta.env.BASE_URL}user/logout.html" class="ml-auto box-border block size-14 border-l fill-gray-300 p-3 hover:bg-gray-100 active:hover:bg-gray-200"><SvgLogout class="size-full" /></a>
             <a href="{import.meta.env.BASE_URL}user/logout.html" class="ifnocss">登出</a>
           {:else}
-            <a href="{import.meta.env.BASE_URL}user/login.html" class="ml-auto box-border block h-full shrink-0 border-l fill-gray-300 p-3 hover:bg-gray-100 active:hover:bg-gray-200"><SvgLogin class="size-full" /></a>
+            <a href="{import.meta.env.BASE_URL}user/login.html" class="ml-auto box-border block size-14 shrink-0 border-l fill-gray-300 p-3 hover:bg-gray-100 active:hover:bg-gray-200"><SvgLogin class="size-full" /></a>
             <a href="{import.meta.env.BASE_URL}user/login.html" class="ifnocss">登入</a>
           {/if}
         </div>
